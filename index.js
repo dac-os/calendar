@@ -33,6 +33,7 @@ app.use(function (request, response, next) {
   next();
 });
 app.use(require('./controllers/calendar'));
+app.use(require('./controllers/event'));
 app.use(function handleErrors(error, request, response, next) {
   'use strict';
 

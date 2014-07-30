@@ -15,7 +15,7 @@ nock(nconf.get('AUTH_URI'), {
   'profile'          : {
     'name'        : 'admin',
     'slug'        : 'admin',
-    'permissions' : ['changeCalendar']
+    'permissions' : ['changeCalendar', 'changeEvent']
   }
 });
 
@@ -34,7 +34,7 @@ nock(nconf.get('AUTH_URI'), {
   'reqheaders' : {'csrf-token' : 'undefined'}
 }).get('/users/me').times(Infinity).reply(404, {});
 
-describe('profile controller', function () {
+describe('calendar controller', function () {
   'use strict';
 
   describe('create', function () {
