@@ -8,6 +8,40 @@ auth = require('dacos-auth-driver');
 Calendar = require('../models/calendar');
 Event = require('../models/event');
 
+/**
+ * @api {post} /calendars/:calendar/events Creates a new calendar event.
+ * @apiName createEvent
+ * @apiVersion 1.0.0
+ * @apiGroup event
+ * @apiPermission changeEvent
+ * @apiDescription
+ * When creating a new calendar event the user must send the event name, date and description. The event name is used
+ * for identifying and must be unique in the calendar. If a existing name is sent to this method, a 409 error will be
+ * raised. And if no name or date is sent, a 400 error will be raised.
+ *
+ * @apiParam {Date} date Event date of occurrence.
+ * @apiParam {String} name Event name.
+ * @apiParam {String} [description] Event description.
+ *
+ * @apiErrorExample
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "name": "required"
+ *   "date": "required"
+ * }
+ *
+ * @apiErrorExample
+ * HTTP/1.1 403 Forbidden
+ * {}
+ *
+ * @apiErrorExample
+ * HTTP/1.1 409 Conflict
+ * {}
+ *
+ * @apiSuccessExample
+ * HTTP/1.1 201 Created
+ * {}
+ */
 router
 .route('/calendars/:calendar/events')
 .post(auth.can('changeEvent'))
@@ -31,6 +65,36 @@ router
   });
 });
 
+/**
+ * @api {get} /calendars List all calendar events.
+ * @apiName listEvent
+ * @apiVersion 1.0.0
+ * @apiGroup event
+ * @apiPermission none
+ * @apiDescription
+ * This method returns an array with all events in the calendar. The data is returned in pages of length 20. If no page
+ * is passed, the system will assume the requested page is page 0, otherwise the desired page must be sent.
+ *
+ * @apiParam {[Number=0]} page Requested page.
+ *
+ * @apiSuccess (event) {String} slug Event identifier.
+ * @apiSuccess (event) {Date} date Event date of occurrence.
+ * @apiSuccess (event) {String} name Event name.
+ * @apiSuccess (event) {String} [description] Event description.
+ * @apiSuccess (event) {Date} createdAt Event creation date.
+ * @apiSuccess (event) {Date} updatedAt Event last update date.
+ *
+ * @apiSuccessExample
+ * HTTP/1.1 200 OK
+ * [{
+ *   "date": "2014-07-01T12:22:25.058Z",
+ *   "slug": "inicio-matricula",
+ *   "name": "início matricula",
+ *   "description": "início do periodo de requerimento de matricula",
+ *   "createdAt": "2014-07-01T12:22:25.058Z",
+ *   "updatedAt": "2014-07-01T12:22:25.058Z"
+ * }]
+ */
 router
 .route('/calendars/:calendar/events')
 .get(function listEvent(request, response, next) {
@@ -52,6 +116,38 @@ router
   });
 });
 
+/**
+ * @api {get} /calendars/:calendar/events/:event Get event information.
+ * @apiName getEvent
+ * @apiVersion 1.0.0
+ * @apiGroup event
+ * @apiPermission none
+ * @apiDescription
+ * This method returns a single event details, the event slug must be passed in the uri to identify the requested event.
+ * If no event with the requested slug was found, a 404 error will be raised.
+ *
+ * @apiSuccess {String} slug Event identifier.
+ * @apiSuccess {Date} date Event date of occurrence.
+ * @apiSuccess {String} name Event name.
+ * @apiSuccess {String} [description] Event description.
+ * @apiSuccess {Date} createdAt Event creation date.
+ * @apiSuccess {Date} updatedAt Event last update date.
+ *
+ * @apiErrorExample
+ * HTTP/1.1 404 Not Found
+ * {}
+ *
+ * @apiSuccessExample
+ * HTTP/1.1 200 OK
+ * {
+ *   "date": "2014-07-01T12:22:25.058Z",
+ *   "slug": "inicio-matricula",
+ *   "name": "início matricula",
+ *   "description": "início do periodo de requerimento de matricula",
+ *   "createdAt": "2014-07-01T12:22:25.058Z",
+ *   "updatedAt": "2014-07-01T12:22:25.058Z"
+ * }
+ */
 router
 .route('/calendars/:calendar/events/:event')
 .get(function getEvent(request, response) {
@@ -62,6 +158,43 @@ router
   return response.status(200).send(event);
 });
 
+/**
+ * @api {put} /calendars/:calendar/events/:event Updates event information.
+ * @apiName updateEvent
+ * @apiVersion 1.0.0
+ * @apiGroup event
+ * @apiPermission changeEvent
+ * @apiDescription
+ * When updating a event the user must send the event date, name and description. If a existing name which is not the
+ * original event name is sent to this method, a 409 error will be raised. And if no name or date is sent, a 400 error
+ * will be raised. If no event with the requested slug was found, a 404 error will be raised.
+ *
+ * @apiParam {Date} date Event date of occurrence.
+ * @apiParam {String} name Event name.
+ * @apiParam {String} [description] Event description.
+ *
+ * @apiErrorExample
+ * HTTP/1.1 404 Not Found
+ * {}
+ *
+ * @apiErrorExample
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "year": "required"
+ * }
+ *
+ * @apiErrorExample
+ * HTTP/1.1 403 Forbidden
+ * {}
+ *
+ * @apiErrorExample
+ * HTTP/1.1 409 Conflict
+ * {}
+ *
+ * @apiSuccessExample
+ * HTTP/1.1 200 Ok
+ * {}
+ */
 router
 .route('/calendars/:calendar/events/:event')
 .put(auth.can('changeEvent'))
@@ -83,6 +216,28 @@ router
   });
 });
 
+/**
+ * @api {delete} /calendars/:calendar/events/:event Removes event.
+ * @apiName removeEvent
+ * @apiVersion 1.0.0
+ * @apiGroup event
+ * @apiPermission changeEvent
+ * @apiDescription
+ * This method removes a event from the system. If no event with the requested slug was found, a 404 error will be
+ * raised.
+ *
+ * @apiErrorExample
+ * HTTP/1.1 404 Not Found
+ * {}
+ *
+ * @apiErrorExample
+ * HTTP/1.1 403 Forbidden
+ * {}
+ *
+ * @apiSuccessExample
+ * HTTP/1.1 204 No Content
+ * {}
+ */
 router
 .route('/calendars/:calendar/events/:event')
 .delete(auth.can('changeEvent'))
