@@ -61,6 +61,7 @@ app.get('/', function pingSuccess(request, response) {
 
   response.status(200).send({});
 });
+
 app.listen(nconf.get('PORT'));
 
 module.exports = app;
