@@ -39,18 +39,18 @@ app.use(function handleErrors(error, request, response, next) {
 
   var errors, prop;
   if (error && error.cause && error.cause()) {
-      if (error.cause().code === 11000) {
-          return response.status(409).end();
+    if (error.cause().code === 11000) {
+      return response.status(409).end();
+    }
+    if (error.cause().errors) {
+      errors = {};
+      for (prop in error.cause().errors) {
+        if (error.cause().errors.hasOwnProperty(prop)) {
+          errors[prop] = error.cause().errors[prop].type;
+        }
       }
-      if (error.cause().errors) {
-          errors = {};
-          for (prop in error.cause().errors) {
-              if (error.cause().errors.hasOwnProperty(prop)) {
-                  errors[prop] = error.cause().errors[prop].type;
-              }
-          }
-          return response.status(400).send(errors);
-      }
+      return response.status(400).send(errors);
+    }
   }
   console.error(error);
   response.status(500).end();
@@ -59,7 +59,7 @@ app.use(function handleErrors(error, request, response, next) {
 app.get('/', function pingSuccess(request, response) {
   'use strict';
 
-  response.status(200).end();
+  response.status(200).send({});
 });
 app.listen(nconf.get('PORT'));
 
