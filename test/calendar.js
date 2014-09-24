@@ -1,38 +1,10 @@
 /*globals describe, before, beforeEach, it, after*/
 require('should');
-var supertest, nock, nconf, app, Calendar;
+var supertest, app, Calendar;
 
 supertest = require('supertest');
 app = require('../index.js');
-nock = require('nock');
-nconf = require('nconf');
 Calendar = require('../models/calendar');
-
-nock(nconf.get('AUTH_URI'), {
-  'reqheaders' : {'csrf-token' : 'adminToken'}
-}).get('/users/me').times(Infinity).reply(200, {
-  'academicRegistry' : '111111',
-  'profile'          : {
-    'name'        : 'admin',
-    'slug'        : 'admin',
-    'permissions' : ['changeCalendar', 'changeEvent']
-  }
-});
-
-nock(nconf.get('AUTH_URI'), {
-  'reqheaders' : {'csrf-token' : 'userToken'}
-}).get('/users/me').times(Infinity).reply(200, {
-  'academicRegistry' : '111112',
-  'profile'          : {
-    'name'        : 'user',
-    'slug'        : 'user',
-    'permissions' : []
-  }
-});
-
-nock(nconf.get('AUTH_URI'), {
-  'reqheaders' : {'csrf-token' : 'undefined'}
-}).get('/users/me').times(Infinity).reply(404, {});
 
 describe('calendar controller', function () {
   'use strict';
