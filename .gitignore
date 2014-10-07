@@ -1,5 +1,7 @@
 # IDE folder
 .idea
+.project
+.tern-project
 
 # Logs
 logs
