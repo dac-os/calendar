@@ -16,14 +16,14 @@ function findActivity(request, response, next) {
   var query;
   query = Activity.findOne();
   query.where('slug').equals(request.param('activity'));
-  query.where('event').equals(request.eventPeriod.event._id);
+  query.where('event').equals(request.eventPeriod.event);
   query.exec(function foundEvent(error, activity) {
     if (error) {
       error = new VError(error, 'error finding activity: "$s"', activity);
       return next(error);
     }
     if (!activity) {
-      console.log("Activity %s not found for period event " + request.eventPeriod.slug, request.param('activity'));
+      console.log("Activity %s not found for event " + request.eventPeriod.slug + ". Event OID: " + request.eventPeriod.event, request.param('activity'));
       return response.status(404).end();
     }
     request.activity = activity;
@@ -73,7 +73,7 @@ router
 
   var activityPeriod;
   activityPeriod = new ActivityPeriod({
-    'slug'				: slug(request.activity.name),
+    'slug'				: request.activity.slug,
     'activity'    : request.activity,
     'eventPeriod' : request.eventPeriod,
     'beginDate'   : request.param('beginDate'),
