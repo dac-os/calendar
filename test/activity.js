@@ -4,7 +4,7 @@ var Activity;
 
 Activity = require('../models/activity');
 
-require('../index')
+require('../index');
 
 describe('activity models', function() {
 	
