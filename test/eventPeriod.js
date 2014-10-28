@@ -77,6 +77,7 @@ describe('event period controller', function () {
       request.set('csrf-token', 'userToken');
       request.send({'endDate' : new Date()});
       request.send({'beginDate': new Date()});
+      request.send({'event' : 'nonExistingOne'});
       request.expect(404);
       request.end(done);
     });
