@@ -34,6 +34,7 @@ app.use(function (request, response, next) {
 });
 app.use(require('./controllers/calendar'));
 app.use(require('./controllers/event'));
+app.use(require('./controllers/eventPeriod'));
 app.use(function handleErrors(error, request, response, next) {
   'use strict';
 
