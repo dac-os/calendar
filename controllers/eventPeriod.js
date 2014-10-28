@@ -12,11 +12,13 @@ EventPeriod = require('../models/eventPeriod');
 router.use(function findEvent(request, response, next) {
   'use strict';
 
-  var query;
-  query = Event.findOne();
   if (!request.param('event')) {
     return next();
   }
+  
+  var query;
+  
+  query = Event.findOne();
   query.where('slug').equals(request.param('event'));
   query.exec(function foundEvent(error, event) {
     if (error) {
