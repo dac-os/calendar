@@ -18,7 +18,7 @@ schema = new Schema({
   'event'    : {
     'type'     : Schema.ObjectId,
     'ref'      : 'Event',
-    'required' : true
+    'required' : false
   },
   'name' : {
     'type'      : String,
