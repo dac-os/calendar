@@ -14,6 +14,9 @@ router.use(function findEvent(request, response, next) {
 
   var query;
   query = Event.findOne();
+  if (!request.param('event')) {
+    return next();
+  }
   query.where('slug').equals(request.param('event'));
   query.exec(function foundEvent(error, event) {
     if (error) {
@@ -66,8 +69,9 @@ router
   'use strict';
 
   var eventPeriod;
-  eventPeriod = new PeriodoEvent({
+  eventPeriod = new EventPeriod({
     'calendar'    : request.calendar ? request.calendar._id : null,
+    'slug'        : request.event.slug,
     'beginDate'   : request.param('beginDate'),
     'endDate'	    : request.param('endDate'),
     'event' 	    : request.event ? request.event._id : null
@@ -132,7 +136,6 @@ router
     return response.status(200).send(events);
   });
 });
-
 
 router.param('calendar', function findCalendar(request, response, next, id) {
   'use strict';

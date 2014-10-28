@@ -9,40 +9,6 @@ Calendar = require('../models/calendar');
 Event = require('../models/event');
 Activity = require('../models/activity');
 
-/**
- * @api {post} /calendars/:calendar/events Creates a new calendar event.
- * @apiName createEvent
- * @apiVersion 1.0.0
- * @apiGroup event
- * @apiPermission changeEvent
- * @apiDescription
- * When creating a new calendar event the user must send the event name, date and description. The event name is used
- * for identifying and must be unique in the calendar. If a existing name is sent to this method, a 409 error will be
- * raised. And if no name or date is sent, a 400 error will be raised.
- *
- * @apiParam {Date} date Event date of occurrence.
- * @apiParam {String} name Event name.
- * @apiParam {String} [description] Event description.
- *
- * @apiErrorExample
- * HTTP/1.1 400 Bad Request
- * {
- *   "name": "required"
- *   "date": "required"
- * }
- *
- * @apiErrorExample
- * HTTP/1.1 403 Forbidden
- * {}
- *
- * @apiErrorExample
- * HTTP/1.1 409 Conflict
- * {}
- *
- * @apiSuccessExample
- * HTTP/1.1 201 Created
- * {}
- */
 router
 .route('/calendars/:calendar/events/:event/activities')
 .post(auth.can('changeActivity'))
@@ -59,6 +25,30 @@ router
     'required'    : request.param('required')
   });
   return activity.save(function createdActivity(error) {
+    if (error) {
+      error = new VError(error, 'error creating activity');
+      return next(error);
+    }
+    return response.status(201).end();
+  });
+});
+
+router
+.route('/events/:event/activities/:activity')
+.post(auth.can('changeEvent'))
+.post(function createEvent(request, response, next) {
+  'use strict';
+
+  var activity;
+  activity = new Event({
+    'slug'        : slug(request.param('name', '').toLowerCase()),
+    'calendar'    : request.calendar ? request.calendar._id : null,
+    'date'        : request.param('date'),
+    'name'        : request.param('name'),
+    'description' : request.param('description')
+  });
+  
+  return activity.save(function createdEvent(error) {
     if (error) {
       error = new VError(error, 'error creating activity');
       return next(error);

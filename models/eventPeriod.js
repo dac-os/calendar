@@ -7,6 +7,10 @@ nconf = require('nconf');
 Schema = mongoose.Schema
 
 schema = new Schema({
+  'slug'     : {
+    'type'     : String,
+    'required' : true
+  },
   'event'    : {
     'type'     : Schema.ObjectId,
     'ref'      : 'Event',
@@ -43,6 +47,7 @@ schema.index({
 
 schema.plugin(jsonSelect, {
   '_id'        : 0,
+  'slug'       : 1,
   'event'      : 1,
   'beginDate'  : 1,
   'endDate'    : 1,

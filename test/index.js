@@ -14,7 +14,7 @@ nock(nconf.get('AUTH_URI'), {
   'profile'          : {
     'name'        : 'admin',
     'slug'        : 'admin',
-    'permissions' : ['changeCalendar', 'changeEvent', 'changeEventPeriod']
+    'permissions' : ['changeCalendar', 'changeEvent', 'changeEventPeriod', 'changeActivity', 'changeActivityPeriod']
   }
 });
 

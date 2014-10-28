@@ -18,35 +18,35 @@ schema = new Schema({
   'event'    : {
     'type'     : Schema.ObjectId,
     'ref'      : 'Event',
-    'required' : false
-  },
-  'name' : {
-    'type'     : String,
     'required' : true
   },
-  'reset'	   : {
-	'type'	   : Boolean,
-	'required' : true,
-	'default'  : false
+  'name' : {
+    'type'      : String,
+    'required'  : true
   },
-  'required'   : {
-	'type'	   : Boolean,
-	'required' : true,
-	'default'  : false
+  'reset'	    : {
+	'type'	    : Boolean,
+	'required'  : true,
+	'default'   : false
+  },
+  'required'    : {
+	'type'	    : Boolean,
+	'required'  : true,
+	'default'   : false
   },
   'previous'    : {
-    'type'     : Schema.ObjectId,
-    'ref'      : 'Activity'
+    'type'      : Schema.ObjectId,
+    'ref'       : 'Activity'
   },
-  'next'    : {
-    'type'     : Schema.ObjectId,
-    'ref'      : 'Activity'
+  'next'        : {
+    'type'      : Schema.ObjectId,
+    'ref'       : 'Activity'
   }
 }, {
-  'collection' : 'activities',
-  'strict'     : true,
-  'toJSON'     : {
-    'virtuals' : true
+  'collection'  : 'activities',
+  'strict'      : true,
+  'toJSON'      : {
+    'virtuals'  : true
   }
 });
 
@@ -64,13 +64,7 @@ schema.plugin(jsonSelect, {
 
 schema.pre('save', function setCalendarUpdatedAt(next) {
   'use strict';
-  console.log(1);
-  next();
-});
-
-schema.pre('save', function setCalendarUpdatedAt(next) {
-  'use strict';
-  console.log(2);
+  
   next();
 });
 
