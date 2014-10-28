@@ -7,10 +7,18 @@ nconf = require('nconf');
 Schema = mongoose.Schema;
 
 schema = new Schema({
+  'slug'       : {
+    'type'     : String
+  },
   'code'       : {
     'type'     : String,
     'required' : true,
     'unique'   : true
+  },
+  'event'    : {
+    'type'     : Schema.ObjectId,
+    'ref'      : 'Event',
+    'required' : false
   },
   'name' : {
     'type'     : String,
@@ -44,7 +52,9 @@ schema = new Schema({
 
 schema.plugin(jsonSelect, {
   '_id'       : 0,
+  'slug'    : 1,
   'code'	  : 1,
+  'event'   : 1,
   'name' 	  : 1,
   'reset' 	  : 1,
   'required'  : 1,
