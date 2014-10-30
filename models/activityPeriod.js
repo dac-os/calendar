@@ -46,10 +46,10 @@ schema.index({
 schema.plugin(jsonSelect, {
 	'_id'           : 0,
 	'slug'					: 1,
-	'eventPeriod'   : 1,
+	'eventPeriod'   : 0,
 	'beginDate'     : 1,
 	'endDate'       : 1,
-	'activity'      : 1
+	'activity'      : 0
 });
 
 module.exports = mongoose.model('ActivityPeriod', schema);

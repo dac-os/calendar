@@ -13,6 +13,10 @@ Calendar = require('../models/calendar');
 function findActivity(request, response, next) {
   'use strict';
 
+  if (request.param('activity') === undefined) {
+    return response.status(400).json({activity : 'required'});
+  }
+
   var query;
   query = Activity.findOne();
   query.where('slug').equals(request.param('activity'));
@@ -40,7 +44,7 @@ function findActivity(request, response, next) {
  * @apiDescription
  * Creates a new activity event.
  * 
- * @apiParam {String} activity Slug for the activity that the activity period will reffer to
+ * @apiParam {String} activity Slug for the activity that the activity period will refer to
  * @apiParam {Date}   beginDate Event begin date of occurrence.
  * @apiParam {Date}   endDate Event end date of occurrence.
  *
@@ -68,7 +72,7 @@ router
 .route('/academic-periods/:calendar/event-periods/:eventPeriod/activity-periods')
 .post(auth.can('changeActivityPeriod'))
 .post(findActivity)
-.post(function createEvent(request, response, next) {
+.post(function createActivityPeriod(request, response, next) {
   'use strict';
 
   var activityPeriod;
@@ -85,6 +89,39 @@ router
       return next(error);
     }
     return response.status(201).end();
+  });
+});
+
+/**
+ * @api {get} /academic-periods/:calendar/event-periods/:eventPeriod/activity-periods
+ * @apiName getActivityPeriods
+ * @apiVersion 1.0.0
+ * @apiGroup event
+ * @apiPermission changeActivityPeriod
+ * @apiDescription
+ * Get the list of activity periods associated to given academicperiods and event periods
+ * 
+ * @apiErrorExample
+ * HTTP/1.1 404 Not found
+ */
+router
+.route('/academic-periods/:calendar/event-periods/:eventPeriod/activity-periods')
+.get(function getActivityPeriods(request, response, next) {
+  'use strict';
+
+  var pageSize, page, query;
+  pageSize = nconf.get('PAGE_SIZE');
+  page = request.param('page', 0) * pageSize;
+  query = ActivityPeriod.find();
+  query.where('eventPeriod').equals(request.eventPeriod._id);
+  query.skip(page);
+  query.limit(pageSize);
+  return query.exec(function listedEvent(error, activityPeriods) {
+    if (error) {
+      error = new VError(error, 'error finding activityPeriods');
+      return next(error);
+    }
+    return response.status(200).send(activityPeriods);
   });
 });
 
