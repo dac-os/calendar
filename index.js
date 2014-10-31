@@ -32,6 +32,7 @@ app.use(function (request, response, next) {
   response.header('Access-Control-Allow-Headers', request.get('Access-Control-Request-Headers'));
   next();
 });
+app.use(require('./controllers/academicPeriod'));
 app.use(require('./controllers/calendar'));
 app.use(require('./controllers/event'));
 app.use(require('./controllers/activity'));
