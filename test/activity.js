@@ -1,69 +1,184 @@
 /*globals describe, before, beforeEach, it, after*/
 require('should');
-var Activity;
+require('./index.js');
+var supertest, app, Calendar, Event;
 
+supertest = require('supertest');
+app = require('../index.js');
+Calendar = require('../models/calendar');
+Event = require('../models/event');
 Activity = require('../models/activity');
 
-require('../index');
+describe('activity controller', function () {
+	
+	'use strict';
 
-describe('activity models', function() {
+	before(Calendar.remove.bind(Calendar));
+	before(Event.remove.bind(Event));
+	before(Activity.remove.bind(Activity));
+
+	before(function (done) {
+		var request = supertest(app);
+		request = request.post('/calendars');
+		request.set('csrf-token', 'adminToken')
+		request.send({'year' : 2014});
+		request.expect(201);
+		request.end(done);
+	});
+
+	before(function (done) {
+		var request = supertest(app);
+		request = request.post('/calendars');
+		request.set('csrf-token', 'adminToken')
+		request.send({'year' : 2015});
+		request.expect(201);
+		request.end(done);
+	});
+
+	before(function (done) {
+		var request = supertest(app);
+		request = request.post('/calendars/2014/events');
+		request.set('csrf-token', 'adminToken')
+		request.send({'date'         : new Date()});
+		request.send({'name'        : 'Event1'});
+		request.send({'description' : 'Event for test purposes'});
+		request.expect(201);
+		request.end(done);
+	});
+
+	before(function (done) {
+		var request = supertest(app);
+		request = request.post('/calendars/2015/events');
+		request.set('csrf-token', 'adminToken')
+		request.send({'date'         : new Date()});
+		request.send({'name'        : 'Event2'});
+		request.send({'description' : 'Event for test purposes'});
+		request.expect(201);
+		request.end(done);
+	});
+
 	
-	describe('save', function() {
+	describe('create', function () {
 		
 		before(Activity.remove.bind(Activity));
+
+		it('should raise error without token', function (done) {
+	      var request = supertest(app);
+	      request = request.post('/calendars/2014/events/event1/activities');
+	      request.send({'code'     : '1'});
+	      request.send({'name'     : 'Activity 1'});
+	      request.send({'reset'    : 'false'});
+	      request.send({'required' : 'false'});
+	      request.expect(403);
+	      request.end(done);
+	    });
 		
-		it('should create with code, name, reset, required', function(done) {
-			var activity = new Activity({ 
-				code:'1',
-				name:'Inscricao aluno ee',
-				reset:true,
-				required:false
-			});
-			
-			activity.save(function(error) {
-				(error === null).should.be.true;
-				done();
-			});
+		it('should raise error event not found', function (done) {
+	      var request = supertest(app);
+	      request = request.post('/calendars/2014/events/event3/activities');
+	      request.set('csrf-token', 'adminToken')
+	      request.send({'code'     : '1'});
+	      request.send({'name'     : 'Activity 1'});
+	      request.send({'reset'    : 'false'});
+	      request.send({'required' : 'false'});
+	      request.expect(404);
+	      request.end(done);
 		});
 		
+		it('should raise error without cod', function (done) {
+	      var request = supertest(app);
+	      request = request.post('/calendars/2014/events/event1/activities');
+	      request.set('csrf-token', 'adminToken')
+	      request.send({'name'     : 'Activity 1'});
+	      request.send({'reset'    : 'false'});
+	      request.send({'required' : 'false'});
+	      request.expect(400);
+	      request.end(done);
+		});
+		
+		it('should raise error without name', function (done) {
+	      var request = supertest(app);
+	      request = request.post('/calendars/2014/events/event1/activities');
+	      request.set('csrf-token', 'adminToken')
+	      request.send({'code'     : '1'});
+	      request.send({'reset'    : 'false'});
+	      request.send({'required' : 'false'});
+	      request.expect(400);
+	      request.end(done);
+		});
+		
+		it('should raise error without reset', function (done) {
+	      var request = supertest(app);
+	      request = request.post('/calendars/2014/events/event1/activities');
+	      request.set('csrf-token', 'adminToken')
+	      request.send({'code'     : '1'});
+	      request.send({'required' : 'false'});
+	      request.expect(400);
+	      request.end(done);
+		});
+		
+		it('should raise error without required', function (done) {
+	      var request = supertest(app);
+	      request = request.post('/calendars/2014/events/event1/activities');
+	      request.set('csrf-token', 'adminToken')
+	      request.send({'code'     : '1'});
+	      request.send({'name'     : 'Activity 1'});
+	      request.send({'reset'    : 'false'});
+	      request.expect(400);
+	      request.end(done);
+		});
+		
+		it('should create activity', function (done) {
+	      var request = supertest(app);
+	      request = request.post('/calendars/2014/events/event1/activities');
+	      request.set('csrf-token', 'adminToken')
+	      request.send({'code'     : '1'});
+	      request.send({'name'     : 'Activity 1'});
+	      request.send({'reset'    : 'false'});
+	      request.send({'required' : 'false'});
+	      request.expect(201);
+	      request.end(done);
+		});
+	
 	});
 	
 	
-	describe('save with previous', function() {
-		
-		var id;
+	describe('list', function () {
 		
 		before(Activity.remove.bind(Activity));
 		
-		before(function(done) {
-			var activity = new Activity({ 
-				code:'1',
-				name:'Inscricao aluno ee',
-				reset:true,
-				required:false
-			});
-			id = activity._id;
-			activity.save(done);
+		before(function (done) {
+			var request = supertest(app);
+		    request = request.post('/calendars/2014/events/event1/activities');
+		    request.set('csrf-token', 'adminToken')
+		    request.send({'code'     : '1'});
+		    request.send({'name'     : 'Activity 1'});
+		    request.send({'reset'    : 'false'});
+		    request.send({'required' : 'false'});
+		    request.expect(201);
+		    request.end(done);
 		});
 		
-		
-		it('should create with code, name, reset, required, previous', function(done) {
-			
-			var activity = new Activity({ 
-				code:'2',
-				name:'Aprovacao aluno ee',
-				reset:true,
-				required:false,
-				previous: id
-			});
-			
-			activity.save(function(error) {
-				(error === null).should.be.true;
-				done();
-			});
+		before(function (done) {
+			var request = supertest(app);
+		    request = request.post('/calendars/2014/events/event1/activities');
+		    request.set('csrf-token', 'adminToken')
+		    request.send({'code'     : '2'});
+		    request.send({'name'     : 'Activity 2'});
+		    request.send({'reset'    : 'false'});
+		    request.send({'required' : 'false'});
+		    request.expect(201);
+		    request.end(done);
 		});
+		
+		it('should list event activities', function (done) {
+			var request = supertest(app);
+		    request = request.get('/calendars/2014/events/event1/activities');
+		    request.expect(200);
+		    request.end(done);
+		});
+				
 		
 	});
-	
 	
 });

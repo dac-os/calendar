@@ -18,7 +18,7 @@ schema = new Schema({
   'event'    : {
     'type'     : Schema.ObjectId,
     'ref'      : 'Event',
-    'required' : false
+    'required' : true
   },
   'name' : {
     'type'      : String,
@@ -52,9 +52,9 @@ schema = new Schema({
 
 schema.plugin(jsonSelect, {
   '_id'       : 0,
-  'slug'    : 1,
+  'slug'      : 1,
   'code'	  : 1,
-  'event'   : 1,
+  'event'     : 1,
   'name' 	  : 1,
   'reset' 	  : 1,
   'required'  : 1,
