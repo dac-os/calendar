@@ -35,6 +35,48 @@ function findActivity(request, response, next) {
   });
 }
 
+function validateActivityPeriod(request, response, next) {
+  'use strict';
+
+  var beginDate = request.param('beginDate') === undefined ? 
+    undefined : new Date(request.param('beginDate'));
+  var endDate = request.param('endDate') == undefined ? 
+    undefined : new Date(request.param('endDate'));
+  var eventPeriod = request.eventPeriod;
+  var errors = {empty : true, info  : {}};
+
+  if (beginDate === undefined) {
+    errors.info.beginDate = 'required';
+    errors.empty = false;
+  }
+
+   if (endDate === undefined) {
+    errors.info.endDate = 'required';
+    errors.empty = false;
+  }
+
+  if (beginDate < eventPeriod.beginDate || beginDate > eventPeriod.endDate) {
+    errors.info.beginDate = 'out of event period';
+    errors.empty = false;
+  }
+
+  if (endDate < eventPeriod.beginDate || endDate > eventPeriod.endDate) {
+    errors.info.endDate = 'out of event period';
+    errors.empty = false;
+  }
+
+  if (beginDate > endDate) {
+    errors.info.beginDate = 'before end date';
+    errors.empty = false;
+  }
+
+  if (!errors.empty) {
+    return response.status(400).json(errors.info);
+  } else {
+    return next();
+  }
+}
+
 /**
  * @api {post} /academic-periods/:calendar/event-periods/:eventPeriod/activity-periods
  * @apiName createActivityPeriod
@@ -72,6 +114,7 @@ router
 .route('/academic-periods/:calendar/event-periods/:eventPeriod/activity-periods')
 .post(auth.can('changeActivityPeriod'))
 .post(findActivity)
+.post(validateActivityPeriod)
 .post(function createActivityPeriod(request, response, next) {
   'use strict';
 
