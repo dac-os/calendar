@@ -4,6 +4,8 @@ require('./index.js');
 var supertest, app, Calendar, Event;
 
 supertest = require('supertest');
+slug = require('slug');
+async = require('async')
 app = require('../index.js');
 Calendar = require('../models/calendar');
 Event = require('../models/event');
@@ -20,103 +22,145 @@ describe('activity period controller', function () {
 	before(Activity.remove.bind(Activity));
 
 	before(function (done) {
-		var request = supertest(app);
-		request = request.post('/calendars');
-		request.set('csrf-token', 'adminToken')
-		request.send({'year' : 2014});
-    request.expect(201);
-		request.end(done);
-	});
+		var createdObjs = {};	
+		
+		async.waterfall([
+			function(callback) {
+				var calendar1 = new Calendar({
+					'year' : 2014
+				});
+				createdObjs.calendar1 = calendar1;
 
-	before(function (done) {
-		var request = supertest(app);
-		request = request.post('/calendars');
-		request.set('csrf-token', 'adminToken')
-		request.send({'year' : 2015});
-    request.expect(201);
-		request.end(done);
-	});
+				calendar1.save(function calendarCreated(error){
+					return callback(error, createdObjs);
+				});
+			},
+			function(createdObjs, callback) {
+				var calendar2 = new Calendar({
+					'year' : 2015
+				});
+				createdObjs.calendar2 = calendar2;
 
-	before(function (done) {
-		var request = supertest(app);
-		request = request.post('/calendars/2014/events');
-		request.set('csrf-token', 'adminToken')
-		request.send({'date'         : new Date()});
-		request.send({'name'        : 'Event1'});
-		request.send({'description' : 'Event for test purposes'});
-    request.expect(201);
-		request.end(done);
-	});
+				calendar2.save(function calendarCreated(error){
+					return callback(error, createdObjs);
+				});
+			},
+			function(createdObjs, callback) {
+				var event1 = new Event({
+					'slug'        : 'event1',
+					'calendar'    : createdObjs.calendar1._id,
+					'date'        : new Date(),
+					'name'        : 'Event1',
+					'description' : 'Event for test purposes'
+				});
 
-	before(function (done) {
-		var request = supertest(app);
-		request = request.post('/calendars/2015/events');
-		request.set('csrf-token', 'adminToken')
-		request.send({'date'         : new Date()});
-		request.send({'name'        : 'Event2'});
-		request.send({'description' : 'Event for test purposes'});
-    request.expect(201);
-		request.end(done);
-	});
+				createdObjs.event1 = event1;
 
-	before(function (done) {
-		var request = supertest(app);
-		request = request.post('/calendars/2014/event-periods');
-		request.set('csrf-token', 'adminToken')
-		request.send({'beginDate'   : new Date(2014,0,1)});
-		request.send({'endDate'     : new Date(2014,5,30)});
-		request.send({'event'       : 'event1'});
-    request.expect(201);
-		request.end(done);
-	});
+				event1.save(function eventCreated(error) {
+					return callback(error, createdObjs);
+				});
+			},
+			function(createdObjs, callback) {
+				var event2 = new Event({
+					'slug'        : 'event2',
+					'calendar'    : createdObjs.calendar2._id,
+					'date'        : new Date(),
+					'name'        : 'Event2',
+					'description' : 'Event for test purposes'
+				});
 
-	before(function (done) {
-		var request = supertest(app);
-		request = request.post('/calendars/2015/event-periods');
-		request.set('csrf-token', 'adminToken')
-		request.send({'beginDate'   : new Date(2015,0,1)});
-		request.send({'endDate'     : new Date(2015,5,30)});
-		request.send({'event'       : 'event2'});
-    request.expect(201);
-		request.end(done);
-	});
+				createdObjs.event2 = event2;
 
-  before(function (done) {
-		var request = supertest(app);
-		request = request.post('/calendars/2014/events/event1/activities');
-		request.set('csrf-token', 'adminToken')
-		request.send({'code'     : '1'});
-		request.send({'name'     : 'Activity1 1'});
-		request.send({'reset'    : 'false'});
-		request.send({'required' : 'false'});
-    request.expect(201);
-		request.end(done);
-	});
+				event2.save(function eventCreated(error) {
+					return callback(error, createdObjs);
+				});
+			},
+			function(createdObjs, callback) {
+				var eventPeriod1 = new EventPeriod({
+					'slug'            : 'event1',
+					'event'           : createdObjs.event1._id,
+					'beginDate'       : new Date(2014,0,1),
+					'endDate'         : new Date(2014,5,30),
+					'calendar'        : createdObjs.calendar1._id
+				});
 
-	before(function (done) {
-		var request = supertest(app);
-		request = request.post('/calendars/2014/events/event1/activities');
-		request.set('csrf-token', 'adminToken')
-		request.send({'code'     : '2'});
-		request.send({'name'     : 'Activity1 2'});
-		request.send({'reset'    : 'false'});
-		request.send({'required' : 'false'});
-    request.expect(201);
-		request.end(done);
-	});
+				createdObjs.eventPeriod1 = eventPeriod1;
 
-	before(function (done) {
-		var request = supertest(app);
-		request = request.post('/calendars/2015/events/event2/activities');
-		request.set('csrf-token', 'adminToken')
-		request.send({'code'     : '3'});
-		request.send({'name'     : 'Activity2 1'});
-		request.send({'reset'    : 'false'});
-		request.send({'required' : 'false'});
-    request.expect(201);
-		request.end(done);
-	});
+				eventPeriod1.save(function eventPeriodCreated(error) {
+					return callback(error, createdObjs);
+				});
+			},
+			function(createdObjs, callback) {
+				var eventPeriod2 = new EventPeriod({
+					'slug'            : 'event2',
+					'event'           : createdObjs.event2._id,
+					'beginDate'       : new Date(2015,0,1),
+					'endDate'         : new Date(2015,5,30),
+					'calendar'        : createdObjs.calendar2._id
+				});
 
+				createdObjs.eventPeriod2 = eventPeriod2;
+
+				eventPeriod2.save(function eventPeriodCreated(error) {
+					return callback(error, createdObjs);
+				});
+			},
+			function(createdObjs, callback) {
+				var activity1_1 = new Activity({
+					'slug'            : 'activity1-1',
+					'code'            : '1',
+					'event'           : createdObjs.event1._id,
+					'name'            : 'Activity1 1',
+					'reset'           : false,
+					'required'        : false
+				});
+
+				createdObjs.activity1_1 = activity1_1;
+
+				activity1_1.save(function eventPeriodCreated(error) {
+					return callback(error, createdObjs);
+				});
+			},
+			function(createdObjs, callback) {
+				var activity1_2 = new Activity({
+					'slug'            : 'activity1-2',
+					'code'            : '2',
+					'event'           : createdObjs.event1._id,
+					'name'            : 'Activity1 2',
+					'reset'           : false,
+					'required'        : false
+				});
+
+				createdObjs.activity1_2 = activity1_2;
+
+				activity1_2.save(function eventPeriodCreated(error) {
+					return callback(error, createdObjs);
+				});
+			},
+			function(createdObjs, callback) {
+				var activity2_1 = new Activity({
+					'slug'            : 'activity2-1',
+					'code'            : '3',
+					'event'           : createdObjs.event2._id,
+					'name'            : 'Activity2 1',
+					'reset'           : false,
+					'required'        : false
+				});
+
+				createdObjs.activity2_1 = activity2_1;
+
+				activity2_1.save(function eventPeriodCreated(error) {
+					return callback(error, createdObjs);
+				});
+			}
+		],
+		function(error) {
+			if (error) throw error;
+
+			return done();
+		});
+	});
+	
 	describe('create', function () {
 		beforeEach(ActivityPeriod.remove.bind(ActivityPeriod));
 
