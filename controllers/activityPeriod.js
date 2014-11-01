@@ -1,10 +1,11 @@
-var VError, router, nconf, slug, auth, Calendar, Event;
+var VError, router, nconf, slug, auth, validation, Calendar, Event;
 
 VError = require('verror');
 router = require('express').Router();
 nconf = require('nconf');
 slug = require('slug');
 auth = require('dacos-auth-driver');
+validation = require('./validation');
 ActivityPeriod = require('../models/activityPeriod');
 EventPeriod = require('../models/eventPeriod');
 Activity = require('../models/activity');
@@ -38,44 +39,31 @@ function findActivity(request, response, next) {
 function validateActivityPeriod(request, response, next) {
   'use strict';
 
-  var beginDate = request.param('beginDate') === undefined ? 
-    undefined : new Date(request.param('beginDate'));
   var endDate = request.param('endDate') == undefined ? 
     undefined : new Date(request.param('endDate'));
   var eventPeriod = request.eventPeriod;
-  var errors = {empty : true, info  : {}};
 
-  if (beginDate === undefined) {
-    errors.info.beginDate = 'required';
-    errors.empty = false;
-  }
+  request.body.checkIf('beginDate').is.present().otherwise.report('required');
+  request.body.checkIf('endDate').is.present().otherwise.report('required');
+  request.body
+    .checkIf('beginDate').asDate().is.between(eventPeriod.beginDate, eventPeriod.endDate)
+    .otherwise.report('out of event period');
 
-   if (endDate === undefined) {
-    errors.info.endDate = 'required';
-    errors.empty = false;
-  }
+  request.body
+    .checkIf('endDate').asDate().is.between(eventPeriod.beginDate, eventPeriod.endDate)
+    .otherwise.report('out of event period');
 
-  if (beginDate < eventPeriod.beginDate || beginDate > eventPeriod.endDate) {
-    errors.info.beginDate = 'out of event period';
-    errors.empty = false;
-  }
+  request.body.checkIf('beginDate').asDate().is.lessThan(endDate).otherwise
+    .report('before end date');
 
-  if (endDate < eventPeriod.beginDate || endDate > eventPeriod.endDate) {
-    errors.info.endDate = 'out of event period';
-    errors.empty = false;
-  }
-
-  if (beginDate > endDate) {
-    errors.info.beginDate = 'before end date';
-    errors.empty = false;
-  }
-
-  if (!errors.empty) {
-    return response.status(400).json(errors.info);
+  if (request.hasErrors()) {
+    return response.status(400).json(request.errors());
   } else {
     return next();
   }
 }
+
+router.use(validation.dacValidation);
 
 /**
  * @api {post} /academic-periods/:calendar/event-periods/:eventPeriod/activity-periods
