@@ -130,7 +130,7 @@ router
  * @apiGroup event
  * @apiPermission changeActivityPeriod
  * @apiDescription
- * Get the list of activity periods associated to given academicperiods and event periods
+ * Get the list of activity periods associated to given academic period and event period
  * 
  * @apiErrorExample
  * HTTP/1.1 404 Not found
@@ -154,6 +154,27 @@ router
     }
     return response.status(200).send(activityPeriods);
   });
+});
+
+/**
+ * @api {get} /academic-periods/:calendar/event-periods/:eventPeriod/activity-periods/:activityPeriod
+ * @apiName getActivityPeriod
+ * @apiVersion 1.0.0
+ * @apiGroup event
+ * @apiPermission changeActivityPeriod
+ * @apiDescription
+ * Get the activity period associated to given academic period and event period and 
+ * activity period slug.
+ * 
+ * @apiErrorExample
+ * HTTP/1.1 404 Not found
+ */
+router
+.route('/academic-periods/:calendar/event-periods/:eventPeriod/activity-periods/:activityPeriod')
+.get(function getActivityPeriods(request, response, next) {
+  'use strict';
+
+  return response.status(200).send(request.activityPeriod);
 });
 
 router.param('calendar', function findCalendar(request, response, next, id) {
@@ -193,6 +214,27 @@ router.param('eventPeriod', function findCalendar(request, response, next, id) {
       return response.status(404).end();
     }
     request.eventPeriod = eventPeriod;
+    return next();
+  });
+});
+
+router.param('activityPeriod', function findActivityPeriod(request, response, next, id) {
+  'use strict';
+
+  var query;
+
+  query = ActivityPeriod.findOne();
+  query.where('slug').equals(id);
+  query.where('eventPeriod').equals(request.eventPeriod._id); 
+  query.exec(function findActivityPeriod(error, activityPeriod) {
+    if (error) {
+      error = new VError(error, 'error finding activity period: "$s"', activityPeriod);
+      return next(error);
+    }
+    if (!activityPeriod) {
+      return response.status(404).end();
+    }
+    request.activityPeriod = activityPeriod;
     return next();
   });
 });

@@ -335,7 +335,7 @@ describe('activity period controller', function () {
 		});		
 	});
 	
-	describe('list', function () {
+	describe('find', function () {
 
 		before(ActivityPeriod.remove.bind(ActivityPeriod));
 		
@@ -372,38 +372,81 @@ describe('activity period controller', function () {
 					request.end(done);
 		});
 
-		it('should raise error calendar not found', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/academic-periods/2013/event-periods/event1/activity-periods');
-      request.expect(404);
-      request.end(done);
-    });
+		describe("all", function() {
+			it('should raise error calendar not found', function (done) {
+	      var request;
+	      request = supertest(app);
+	      request = request.get('/academic-periods/2013/event-periods/event1/activity-periods');
+	      request.expect(404);
+	      request.end(done);
+	    });
 
-    it('should raise error event period not found', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/academic-periods/2014/event-periods/eventaaa/activity-periods');
-      request.expect(404);
-      request.end(done);
-    });
+	    it('should raise error event period not found', function (done) {
+	      var request;
+	      request = supertest(app);
+	      request = request.get('/academic-periods/2014/event-periods/eventaaa/activity-periods');
+	      request.expect(404);
+	      request.end(done);
+	    });
 
-    it('should list', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/academic-periods/2014/event-periods/event1/activity-periods');
-      request.expect(200);
-      request.expect(function (response) {
-        response.body.should.be.an.Array.with.lengthOf(2);
-        response.body.every(function (event) {
-          event.should.have.property('beginDate');
-          event.should.have.property('endDate');
-          event.should.have.property('slug');
-          event.should.not.have.property('eventPeriod');
-          event.should.not.have.property("activity");
-        });
-      });
-      request.end(done);
-    });
+	    it('should list', function (done) {
+	      var request;
+	      request = supertest(app);
+	      request = request.get('/academic-periods/2014/event-periods/event1/activity-periods');
+	      request.expect(200);
+	      request.expect(function (response) {
+	        response.body.should.be.an.Array.with.lengthOf(2);
+	        response.body.every(function (event) {
+	          event.should.have.property('beginDate');
+	          event.should.have.property('endDate');
+	          event.should.have.property('slug');
+	          event.should.not.have.property('eventPeriod');
+	          event.should.not.have.property("activity");
+	        });
+	      });
+	      request.end(done);
+	    });
+		});
+		
+		describe('by id', function() {
+			it('should raise error calendar not found', function (done) {
+	      var request;
+	      request = supertest(app);
+	      request = request.get('/academic-periods/2013/event-periods/event1/activity-periods/activity1-1');
+	      request.expect(404);
+	      request.end(done);
+	    });
+
+	    it('should raise error event period not found', function (done) {
+	      var request;
+	      request = supertest(app);
+	      request = request.get('/academic-periods/2014/event-periods/eventaaa/activity-periods/activity1-1');
+	      request.expect(404);
+	      request.end(done);
+	    });
+
+	    it('should raise error activity period not found', function (done) {
+	      var request;
+	      request = supertest(app);
+	      request = request.get('/academic-periods/2014/event-periods/event1/activity-periods/activity5-1');
+	      request.expect(404);
+	      request.end(done);
+	    });
+
+	    it('should find', function (done) {
+	      var request;
+	      request = supertest(app);
+	      request = request.get('/academic-periods/2014/event-periods/event1/activity-periods/activity1-1');
+	      request.expect(200);
+	      request.expect(function(response) {
+	      	response.body.should.be.an.instanceOf(Object);
+	      	response.body.should.have.property('slug', 'activity1-1');
+	      	response.body.should.have.property('beginDate');
+	      	response.body.should.have.property('endDate');
+
+	      });
+	      request.end(done);
+	    });
+		});		
 	});
 });

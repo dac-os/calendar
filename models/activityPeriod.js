@@ -43,6 +43,13 @@ schema.index({
 	'unique' : true
 })
 
+schema.index({
+	'slug'    : 1,
+	'eventPeriod' : 1
+}, {
+	'unique' : true
+})
+
 schema.plugin(jsonSelect, {
 	'_id'           : 0,
 	'slug'					: 1,
