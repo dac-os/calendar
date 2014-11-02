@@ -54,7 +54,7 @@ function validateActivityPeriod(request, response, next) {
     .otherwise.report('out of event period');
 
   request.body.checkIf('beginDate').asDate().is.lessThan(endDate).otherwise
-    .report('before end date');
+    .report('after end date');
 
   if (request.hasErrors()) {
     return response.status(400).json(request.errors());
@@ -75,8 +75,8 @@ router.use(validation.dacValidation);
  * Creates a new activity event.
  * 
  * @apiParam {String} activity Slug for the activity that the activity period will refer to
- * @apiParam {Date}   beginDate Event begin date of occurrence.
- * @apiParam {Date}   endDate Event end date of occurrence.
+ * @apiParam {Date}   beginDate Activity begin date of occurrence.
+ * @apiParam {Date}   endDate Activity end date of occurrence.
  *
  * @apiErrorExample
  * HTTP/1.1 400 Bad Request
@@ -134,6 +134,21 @@ router
  * 
  * @apiErrorExample
  * HTTP/1.1 404 Not found
+ *
+ * @apiSuccessExample
+ * HTTP/1.1 204 No Content
+ * {[
+ *   {
+ *      "slug":      "activity-1",
+ *      "beginDate": "Mon Nov 03 2014 0:00:00 GMT-0200",
+ *      "beginDate": "Tue Nov 04 2014 0:00:00 GMT-0200"
+ *    },
+ *   {
+ *      "slug":      "activity-2",
+ *      "beginDate": "Wed Nov 05 2014 0:00:00 GMT-0200",
+ *      "beginDate": "Thu Nov 06 2014 0:00:00 GMT-0200"
+ *    }
+ * ]}
  */
 router
 .route('/academic-periods/:calendar/event-periods/:eventPeriod/activity-periods')
@@ -168,6 +183,14 @@ router
  * 
  * @apiErrorExample
  * HTTP/1.1 404 Not found
+ *
+ * @apiSuccessExample
+ * HTTP/1.1 204 No Content
+ * {   
+ *    "slug":      "activity-1",
+ *    "beginDate": "Mon Nov 03 2014 0:00:00 GMT-0200",
+ *    "beginDate": "Tue Nov 04 2014 0:00:00 GMT-0200"
+ * }
  */
 router
 .route('/academic-periods/:calendar/event-periods/:eventPeriod/activity-periods/:activityPeriod')
@@ -175,6 +198,93 @@ router
   'use strict';
 
   return response.status(200).send(request.activityPeriod);
+});
+
+/**
+ * @api {put} /academic-periods/:calendar/event-periods/:eventPeriod/activity-periods/:activityPeriod
+ * @apiName updateActivityPeriod
+ * @apiVersion 1.0.0
+ * @apiGroup event
+ * @apiPermission changeActivityPeriod
+ * @apiDescription
+ * Updates a activity event.
+ * 
+ * @apiParam {Date}   beginDate Activity begin date of occurrence.
+ * @apiParam {Date}   endDate Activity end date of occurrence.
+ *
+ * @apiErrorExample
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "beginDate": "required"
+ *   "endDate": "required"
+ * }
+ *
+ * @apiErrorExample
+ * HTTP/1.1 403 Forbidden
+ * {}
+
+ * @apiErrorExample
+ * HTTP/1.1 404 Not Found
+ * {}
+ *
+ * @apiSuccessExample
+ * HTTP/1.1 200 Ok
+ * {}
+ */
+router
+.route('/academic-periods/:calendar/event-periods/:eventPeriod/activity-periods/:activityPeriod')
+.put(auth.can('changeActivityPeriod'))
+.put(validateActivityPeriod)
+.put(function updateActivityPeriod(request, response, next) {
+  'use strict';
+
+  request.activityPeriod.beginDate = request.param('beginDate');
+  request.activityPeriod.endDate = request.param('endDate');
+
+  return request.activityPeriod.save(function createdEvent(error) {
+    if (error) {
+      error = new VError(error, 'error updating activity period $s', request.params.activityPeriod);
+      return next(error);
+    }
+    return response.status(200).end();
+  });
+});
+
+
+/**
+ * @api {delete} /academic-periods/:calendar/event-periods/:eventPeriod/activity-periods/:activityPeriod
+ * @apiName deleteActivityPeriod
+ * @apiVersion 1.0.0
+ * @apiGroup event
+ * @apiPermission changeActivityPeriod
+ * @apiDescription
+ * Deletes a activity event.
+ * 
+ * @apiErrorExample
+ * HTTP/1.1 404 Not Found
+ * {}
+
+ * @apiErrorExample
+ * HTTP/1.1 403 Forbidden
+ * {}
+ *
+ * @apiSuccessExample
+ * HTTP/1.1 204 Created
+ * {}
+ */
+router
+.route('/academic-periods/:calendar/event-periods/:eventPeriod/activity-periods/:activityPeriod')
+.delete(auth.can('changeActivityPeriod'))
+.delete(function updateActivityPeriod(request, response, next) {
+  'use strict';
+
+  return request.activityPeriod.remove(function createdEvent(error) {
+    if (error) {
+      error = new VError(error, 'error deleting activity period $s', request.params.activitPeriod);
+      return next(error);
+    }
+    return response.status(204).end();
+  });
 });
 
 router.param('calendar', function findCalendar(request, response, next, id) {
@@ -185,7 +295,7 @@ router.param('calendar', function findCalendar(request, response, next, id) {
   query.where('year').equals(id);
   query.exec(function foundCalendar(error, calendar) {
     if (error) {
-      error = new VError(error, 'error finding calendar: "$s"', calendar);
+      error = new VError(error, 'error finding calendar: "$s"', id);
       return next(error);
     }
     if (!calendar) {
@@ -206,7 +316,7 @@ router.param('eventPeriod', function findCalendar(request, response, next, id) {
   query.where('calendar').equals(request.calendar._id); 
   query.exec(function foundCalendar(error, eventPeriod) {
     if (error) {
-      error = new VError(error, 'error finding eventPeriod: "$s"', eventPeriod);
+      error = new VError(error, 'error finding eventPeriod: "$s"', id);
       return next(error);
     }
     if (!eventPeriod) {
@@ -228,7 +338,7 @@ router.param('activityPeriod', function findActivityPeriod(request, response, ne
   query.where('eventPeriod').equals(request.eventPeriod._id); 
   query.exec(function findActivityPeriod(error, activityPeriod) {
     if (error) {
-      error = new VError(error, 'error finding activity period: "$s"', activityPeriod);
+      error = new VError(error, 'error finding activity period: "$s"', id);
       return next(error);
     }
     if (!activityPeriod) {

@@ -318,7 +318,7 @@ describe('activity period controller', function () {
 			request.send({'endDate'   : new Date(2014,3,9)});
 			request.expect(400);
 			request.expect(function (response) {
-				response.body.should.have.property('beginDate').be.equal('before end date')
+				response.body.should.have.property('beginDate').be.equal('after end date')
 			});
 			request.end(done);
 		});
@@ -447,6 +447,208 @@ describe('activity period controller', function () {
 	      });
 	      request.end(done);
 	    });
-		});		
+		});	
+	});
+
+	describe('update', function() {
+		before(ActivityPeriod.remove.bind(ActivityPeriod));
+		
+		before(function (done) {
+			var request = supertest(app);
+					request = request.post('/academic-periods/2014/event-periods/event1/activity-periods');
+					request.set('csrf-token', 'adminToken');
+					request.send({'activity'  : 'activity1-1'});
+					request.send({'beginDate' : new Date(2014,2,1)});
+					request.send({'endDate'   : new Date(2014,3,1)});
+					request.expect(201);
+					request.end(done);
+		});
+
+		it('should raise error calendar not found', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.put('/academic-periods/2013/event-periods/event1/activity-periods/activity1-1');
+			request.set('csrf-token', 'adminToken');
+      request.expect(404);
+      request.end(done);
+    });
+
+    it('should raise error event period not found', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.put('/academic-periods/2014/event-periods/eventaaa/activity-periods/activity1-1');
+			request.set('csrf-token', 'adminToken');
+      request.expect(404);
+      request.end(done);
+    });
+
+    it('should raise error activity period not found', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.put('/academic-periods/2014/event-periods/event1/activity-periods/activityNonExistent');
+			request.set('csrf-token', 'adminToken');
+			request.send({'beginDate'   : new Date(2013,3,2)});
+			request.send({'endDate'   : new Date(2014,3,2)});
+      request.expect(404);
+      request.end(done);
+    });
+
+    it('should raise error begin date is required', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.put('/academic-periods/2014/event-periods/event1/activity-periods/activity1-1');
+			request.set('csrf-token', 'adminToken');
+			request.send({'endDate'   : new Date(2014,3,2)});
+      request.expect(400);
+      request.expect(function(response) {
+      	response.body.should.have.property('beginDate', 'required');
+      });
+      request.end(done);
+    });
+
+    it('should raise error end date is required', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.put('/academic-periods/2014/event-periods/event1/activity-periods/activity1-1');
+			request.set('csrf-token', 'adminToken');
+			request.send({'beginDate'   : new Date(2014,3,2)});
+      request.expect(400);
+      request.expect(function(response) {
+      	response.body.should.have.property('endDate', 'required');
+      });
+      request.end(done);
+    });
+
+    it('should raise error begin date before of event period', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.put('/academic-periods/2014/event-periods/event1/activity-periods/activity1-1');
+			request.set('csrf-token', 'adminToken');
+			request.send({'beginDate'   : new Date(2013,3,2)});
+			request.send({'endDate'   : new Date(2014,3,2)});
+      request.expect(400);
+      request.expect(function(response) {
+      	response.body.should.have.property('beginDate', 'out of event period');
+      });
+      request.end(done);
+    });
+
+    it('should raise error begin date after of event period', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.put('/academic-periods/2014/event-periods/event1/activity-periods/activity1-1');
+			request.set('csrf-token', 'adminToken');
+			request.send({'beginDate'   : new Date(2015,3,2)});
+			request.send({'endDate'   : new Date(2014,3,2)});
+      request.expect(400);
+      request.expect(function(response) {
+      	response.body.should.have.property('beginDate', 'out of event period');
+      });
+      request.end(done);
+    });
+
+    it('should raise error end date before of event period', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.put('/academic-periods/2014/event-periods/event1/activity-periods/activity1-1');
+			request.set('csrf-token', 'adminToken');
+			request.send({'beginDate'   : new Date(2014,3,2)});
+			request.send({'endDate'   : new Date(2013,3,2)});
+      request.expect(400);
+      request.expect(function(response) {
+      	response.body.should.have.property('endDate', 'out of event period');
+      });
+      request.end(done);
+    });
+
+    it('should raise error end date after of event period', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.put('/academic-periods/2014/event-periods/event1/activity-periods/activity1-1');
+			request.set('csrf-token', 'adminToken');
+			request.send({'beginDate'   : new Date(2014,3,2)});
+			request.send({'endDate'   : new Date(2015,3,2)});
+      request.expect(400);
+      request.expect(function(response) {
+      	response.body.should.have.property('endDate', 'out of event period');
+      });
+      request.end(done);
+    });
+
+    it('should raise error begin date after of end date', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.put('/academic-periods/2014/event-periods/event1/activity-periods/activity1-1');
+			request.set('csrf-token', 'adminToken');
+			request.send({'beginDate'   : new Date(2014,4,2)});
+			request.send({'endDate'   : new Date(2014,3,2)});
+      request.expect(400);
+      request.expect(function(response) {
+      	response.body.should.have.property('beginDate', 'after end date');
+      });
+      request.end(done);
+    });
+
+    it('should should update', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.put('/academic-periods/2014/event-periods/event1/activity-periods/activity1-1');
+			request.set('csrf-token', 'adminToken');
+			request.send({'beginDate'   : new Date(2014,4,2)});
+			request.send({'endDate'   : new Date(2014,5,2)});
+      request.expect(200);
+      request.end(done);
+    });
+	});
+
+	describe('remove', function() {
+		before(ActivityPeriod.remove.bind(ActivityPeriod));
+		
+		before(function (done) {
+			var request = supertest(app);
+					request = request.post('/academic-periods/2014/event-periods/event1/activity-periods');
+					request.set('csrf-token', 'adminToken');
+					request.send({'activity'  : 'activity1-1'});
+					request.send({'beginDate' : new Date(2014,2,1)});
+					request.send({'endDate'   : new Date(2014,3,1)});
+					request.expect(201);
+					request.end(done);
+		});
+
+		it('should raise error calendar not found', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.delete('/academic-periods/2013/event-periods/event1/activity-periods/activity1-1');
+			request.set('csrf-token', 'adminToken');
+      request.expect(404);
+      request.end(done);
+    });
+
+    it('should raise error event period not found', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.delete('/academic-periods/2014/event-periods/eventaaa/activity-periods/activity1-1');
+			request.set('csrf-token', 'adminToken');
+      request.expect(404);
+      request.end(done);
+    });
+
+    it('should raise error activity period not found', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.delete('/academic-periods/2014/event-periods/event1/activity-periods/activityNonExistent');
+			request.set('csrf-token', 'adminToken');
+      request.expect(404);
+      request.end(done);
+    });
+
+    it('should delete', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.delete('/academic-periods/2014/event-periods/event1/activity-periods/activity1-1');
+			request.set('csrf-token', 'adminToken');
+      request.expect(204);
+      request.end(done);
+    });
 	});
 });

@@ -8,7 +8,7 @@ function Validator (label, target, errorsOwner) {
   this.is = this;
   this.otherwise = this;
   this.and = this;
-  this.isOk = true;
+  this.isOk = !this.errorsOwner._vf_errors[label];
 
   this.greatherThan = function (other) {
     if (this.isOk && this.value <= other) {
@@ -70,7 +70,7 @@ function Validator (label, target, errorsOwner) {
   };
 
   this.report = function(message) {
-    if (!this.isOk) {
+    if (!this.isOk && !this.errorsOwner._vf_errors[label]) {
       this.errorsOwner._vf_errors[label] = message;
     }
   };
