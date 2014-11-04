@@ -26,7 +26,7 @@ describe('event period controller', function () {
   before(function (done) {
     var request;
     request = supertest(app);
-    request = request.post('/calendars/2014/events');
+    request = request.post('/events');
     request.set('csrf-token', 'adminToken');
     request.send({'date': new Date()});
     request.send({'name': 'Matricula'});
