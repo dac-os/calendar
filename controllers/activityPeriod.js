@@ -5,7 +5,6 @@ router = require('express').Router();
 nconf = require('nconf');
 slug = require('slug');
 auth = require('dacos-auth-driver');
-validation = require('./validation');
 ActivityPeriod = require('../models/activityPeriod');
 EventPeriod = require('../models/eventPeriod');
 Activity = require('../models/activity');
@@ -35,35 +34,6 @@ function findActivity(request, response, next) {
     return next();
   });
 }
-
-function validateActivityPeriod(request, response, next) {
-  'use strict';
-
-  var endDate = request.param('endDate') == undefined ? 
-    undefined : new Date(request.param('endDate'));
-  var eventPeriod = request.eventPeriod;
-
-  request.body.checkIf('beginDate').is.present().otherwise.report('required');
-  request.body.checkIf('endDate').is.present().otherwise.report('required');
-  request.body
-    .checkIf('beginDate').asDate().is.between(eventPeriod.beginDate, eventPeriod.endDate)
-    .otherwise.report('out of event period');
-
-  request.body
-    .checkIf('endDate').asDate().is.between(eventPeriod.beginDate, eventPeriod.endDate)
-    .otherwise.report('out of event period');
-
-  request.body.checkIf('beginDate').asDate().is.lessThan(endDate).otherwise
-    .report('after end date');
-
-  if (request.hasErrors()) {
-    return response.status(400).json(request.errors());
-  } else {
-    return next();
-  }
-}
-
-router.use(validation.dacValidation);
 
 /**
  * @api {post} /academic-periods/:calendar/event-periods/:eventPeriod/activity-periods
@@ -102,7 +72,6 @@ router
 .route('/academic-periods/:calendar/event-periods/:eventPeriod/activity-periods')
 .post(auth.can('changeActivityPeriod'))
 .post(findActivity)
-.post(validateActivityPeriod)
 .post(function createActivityPeriod(request, response, next) {
   'use strict';
 
@@ -234,7 +203,6 @@ router
 router
 .route('/academic-periods/:calendar/event-periods/:eventPeriod/activity-periods/:activityPeriod')
 .put(auth.can('changeActivityPeriod'))
-.put(validateActivityPeriod)
 .put(function updateActivityPeriod(request, response, next) {
   'use strict';
 

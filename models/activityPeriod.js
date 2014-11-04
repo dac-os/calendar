@@ -59,4 +59,31 @@ schema.plugin(jsonSelect, {
 	'activity'      : 0
 });
 
+schema.path('beginDate').validate(function(value, next) {
+	async.waterfall([function (next) {
+		this.populate('eventPeriod');
+		this.populate(next);
+	}.bind(this)], function (error) {
+		next(!error && this.beginDate >= this.eventPeriod.beginDate && this.beginDate <= this.eventPeriod.endDate);
+	}.bind(this));
+}, 'out of event period');
+
+schema.path('endDate').validate(function(value, next) {
+	async.waterfall([function (next) {
+		this.populate('eventPeriod');
+		this.populate(next);
+	}.bind(this)], function (error) {
+		next(!error && this.endDate >= this.eventPeriod.beginDate && this.endDate <= this.eventPeriod.endDate);
+	}.bind(this));
+}, 'out of event period');
+
+schema.path('beginDate').validate(function(value, next) {
+	async.waterfall([function (next) {
+		this.populate('eventPeriod');
+		this.populate(next);
+	}.bind(this)], function (error) {
+		next(!error && this.beginDate <= this.endDate);
+	}.bind(this));
+}, 'after end date');
+
 module.exports = mongoose.model('ActivityPeriod', schema);
