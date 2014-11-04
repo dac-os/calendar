@@ -43,7 +43,7 @@ Event = require('../models/event');
  * {}
  */
 router
-.route('/calendars/:calendar/events')
+.route('/events')
 .post(auth.can('changeEvent'))
 .post(function createEvent(request, response, next) {
   'use strict';
@@ -51,8 +51,6 @@ router
   var event;
   event = new Event({
     'slug'        : slug(request.param('name', '').toLowerCase()),
-    'calendar'    : request.calendar ? request.calendar._id : null,
-    'date'        : request.param('date'),
     'name'        : request.param('name'),
     'description' : request.param('description')
   });
@@ -96,7 +94,7 @@ router
  * }]
  */
 router
-.route('/calendars/:calendar/events')
+.route('/events')
 .get(function listEvent(request, response, next) {
   'use strict';
 
@@ -104,7 +102,7 @@ router
   pageSize = nconf.get('PAGE_SIZE');
   page = request.param('page', 0) * pageSize;
   query = Event.find();
-  query.where('calendar').equals(request.calendar._id);
+//  query.where('calendar').equals(request.calendar._id);
   query.skip(page);
   query.limit(pageSize);
   return query.exec(function listedEvent(error, events) {
@@ -149,7 +147,7 @@ router
  * }
  */
 router
-.route('/calendars/:calendar/events/:event')
+.route('/events/:event')
 .get(function getEvent(request, response) {
   'use strict';
 
@@ -196,7 +194,7 @@ router
  * {}
  */
 router
-.route('/calendars/:calendar/events/:event')
+.route('/events/:event')
 .put(auth.can('changeEvent'))
 .put(function updateEvent(request, response, next) {
   'use strict';
@@ -204,7 +202,6 @@ router
   var event;
   event = request.event;
   event.slug = slug(request.param('name', '').toLowerCase());
-  event.date = request.param('date');
   event.name = request.param('name');
   event.description = request.param('description');
   return event.save(function updatedEvent(error) {
@@ -239,7 +236,7 @@ router
  * {}
  */
 router
-.route('/calendars/:calendar/events/:event')
+.route('/events/:event')
 .delete(auth.can('changeEvent'))
 .delete(function removeEvent(request, response, next) {
   'use strict';
@@ -255,7 +252,7 @@ router
   });
 });
 
-router.param('calendar', function findCalendar(request, response, next, id) {
+/*router.param('calendar', function findCalendar(request, response, next, id) {
   'use strict';
 
   var query;
@@ -273,13 +270,13 @@ router.param('calendar', function findCalendar(request, response, next, id) {
     return next();
   });
 });
-
+*/
 router.param('event', function findEvent(request, response, next, id) {
   'use strict';
 
   var query;
   query = Event.findOne();
-  query.where('calendar').equals(request.calendar._id);
+//  query.where('calendar').equals(request.calendar._id);
   query.where('slug').equals(id);
   query.exec(function foundEvent(error, event) {
     if (error) {

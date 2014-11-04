@@ -311,7 +311,6 @@ router.param('event', function findEvent(request, response, next, id) {
 
   var query;
   query = Event.findOne();
-  query.where('calendar').equals(request.calendar._id);
   query.where('slug').equals(id);
   query.exec(function foundEvent(error, event) {
     if (error) {

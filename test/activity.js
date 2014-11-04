@@ -37,23 +37,19 @@ describe('activity controller', function () {
 
 	before(function (done) {
 		var request = supertest(app);
-		request = request.post('/calendars/2014/events');
+		request = request.post('/events');
 		request.set('csrf-token', 'adminToken')
-		request.send({'date'         : new Date()});
 		request.send({'name'        : 'Event1'});
 		request.send({'description' : 'Event for test purposes'});
-		request.expect(201);
 		request.end(done);
 	});
 
 	before(function (done) {
 		var request = supertest(app);
-		request = request.post('/calendars/2015/events');
+		request = request.post('/events');
 		request.set('csrf-token', 'adminToken')
-		request.send({'date'         : new Date()});
 		request.send({'name'        : 'Event2'});
 		request.send({'description' : 'Event for test purposes'});
-		request.expect(201);
 		request.end(done);
 	});
 

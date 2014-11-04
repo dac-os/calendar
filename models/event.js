@@ -10,18 +10,10 @@ schema = new Schema({
   'slug'        : {
     'type' : String
   },
-  'calendar'    : {
-    'type'     : Schema.ObjectId,
-    'ref'      : 'Calendar',
-    'required' : true
-  },
+
   'name'        : {
     'type'     : String,
     'unique'   : true,
-    'required' : true
-  },
-  'date'        : {
-    'type'     : Date,
     'required' : true
   },
   'description' : {
@@ -43,8 +35,7 @@ schema = new Schema({
 });
 
 schema.index({
-  'slug'     : 1,
-  'calendar' : 1
+  'slug'     : 1
 }, {
   'unique' : true
 });
@@ -52,9 +43,7 @@ schema.index({
 schema.plugin(jsonSelect, {
   '_id'         : 0,
   'slug'        : 1,
-  'calendar'    : 0,
   'name'        : 1,
-  'date'        : 1,
   'description' : 1,
   'createdAt'   : 1,
   'updatedAt'   : 1
