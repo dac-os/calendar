@@ -68,20 +68,4 @@ schema.pre('save', function setEventUpdatedAt(next) {
   next();
 });
 
-schema.pre('remove', function (next) {
-  'use strict';
-
-  async.waterfall([function (next) {
-    var Event, query;
-    Event = require('./event');
-    query = Event.find();
-    query.where('calendar').equals(this._id);
-    query.exec(next);
-  }.bind(this), function (events, next) {
-    async.each(events, function (event, next) {
-      event.remove(next);
-    }, next);
-  }], next);
-});
-
 module.exports = mongoose.model('Event', schema);

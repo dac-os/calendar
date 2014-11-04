@@ -42,4 +42,20 @@ schema.pre('save', function setCalendarUpdatedAt(next) {
   next();
 });
 
+schema.pre('remove', function deleteCascadeEvents(next) {
+  'use strict';
+
+  async.waterfall([function (next) {
+    var Event, query;
+    Event = require('./event');
+    query = Event.find();
+    query.where('calendar').equals(this._id);
+    query.exec(next);
+  }.bind(this), function (events, next) {
+    async.each(events, function (event, next) {
+      event.remove(next);
+    }.bind(this), next);
+  }.bind(this)], next);
+});
+
 module.exports = mongoose.model('Calendar', schema);
