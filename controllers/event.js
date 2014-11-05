@@ -260,7 +260,7 @@ router.param('calendar', function findCalendar(request, response, next, id) {
 
   var query;
   query = Calendar.findOne();
-  query.where('year').equals(id);
+  query.where('year').equals(isNaN(id) ? 0 : id);
   query.exec(function foundCalendar(error, calendar) {
     if (error) {
       error = new VError(error, 'error finding calendar: "$s"', calendar);

@@ -142,7 +142,7 @@ describe('calendar controller', function () {
       it('should raise error', function (done) {
         var request;
         request = supertest(app);
-        request = request.get('/calendars/2010');
+        request = request.get('/calendars/invalid');
         request.expect(404);
         request.end(done);
       });
@@ -201,7 +201,7 @@ describe('calendar controller', function () {
       it('should raise error', function (done) {
         var request;
         request = supertest(app);
-        request = request.put('/calendars/2010');
+        request = request.put('/calendars/invalid');
         request.set('csrf-token', 'adminToken');
         request.send({'year' : 2015});
         request.expect(404);
@@ -313,7 +313,7 @@ describe('calendar controller', function () {
       it('should raise error', function (done) {
         var request;
         request = supertest(app);
-        request = request.del('/calendars/2010');
+        request = request.del('/calendars/invalid');
         request.set('csrf-token', 'adminToken');
         request.expect(404);
         request.end(done);

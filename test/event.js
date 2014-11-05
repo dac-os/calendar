@@ -53,7 +53,7 @@ describe('event controller', function () {
       it('should raise error', function (done) {
         var request;
         request = supertest(app);
-        request = request.post('/calendars/2015/events');
+        request = request.post('/calendars/invalid/events');
         request.set('csrf-token', 'adminToken');
         request.send({'date' : new Date()});
         request.send({'name' : 'matricula do primeiro semestre'});
@@ -153,7 +153,7 @@ describe('event controller', function () {
       it('should raise error', function (done) {
         var request;
         request = supertest(app);
-        request = request.get('/calendars/2015/events');
+        request = request.get('/calendars/invalid/events');
         request.expect(404);
         request.end(done);
       });
@@ -217,7 +217,7 @@ describe('event controller', function () {
       it('should raise error', function (done) {
         var request;
         request = supertest(app);
-        request = request.get('/calendars/2015/events/matricula-do-primeiro-semestre');
+        request = request.get('/calendars/invalid/events/matricula-do-primeiro-semestre');
         request.expect(404);
         request.end(done);
       });
@@ -291,7 +291,7 @@ describe('event controller', function () {
       it('should raise error', function (done) {
         var request;
         request = supertest(app);
-        request = request.put('/calendars/2015/events/matricula-do-primeiro-semestre');
+        request = request.put('/calendars/invalid/events/matricula-do-primeiro-semestre');
         request.set('csrf-token', 'adminToken');
         request.send({'date' : new Date()});
         request.send({'name' : 'matricula do primeiro semestre 2'});
@@ -450,11 +450,11 @@ describe('event controller', function () {
       });
     });
 
-    describe(' valid calendar', function () {
+    describe('without valid calendar', function () {
       it('should raise error', function (done) {
         var request;
         request = supertest(app);
-        request = request.del('/calendars/2015/events/matricula-do-primeiro-semestre');
+        request = request.del('/calendars/invalid/events/matricula-do-primeiro-semestre');
         request.set('csrf-token', 'adminToken');
         request.expect(404);
         request.end(done);
