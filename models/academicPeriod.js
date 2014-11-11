@@ -8,15 +8,18 @@ Schema = mongoose.Schema;
 
 schema = new Schema({
   'slug'        : {
-    'type'      : String
+    'type'     
+     : String
   },
   'periodNumber':{
     'type'      : Number,
-    'required'  : true
+    'required'  : true,
+    'enum'      : [ 1, 2, 5, 6 ]
   },
-  'periodType'  :{
+  'periodType' :{
     'type'      : String,
-    'required'  : true
+    'required'  : true,
+    'enum'      : [ 'A', 'S' ]
   },
   'year'      : {
     'type'     : Number,
@@ -77,5 +80,12 @@ schema.pre('save', function setAcademicPeriodUpdatedAt(next) {
   this.updatedAt = new Date();
   next();
 });
+
+
+schema.path('periodType').validate(function(value) {
+  return (((this.periodNumber==1 || this.periodNumber==2) && this.periodType=='S')
+  || ((this.periodNumber==5 || this.periodNumber==6) && this.periodType=='A'))
+}, 'incompatible period number and type');
+
 
 module.exports = mongoose.model('AcademicPeriod', schema);
