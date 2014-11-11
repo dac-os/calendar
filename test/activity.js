@@ -1,11 +1,10 @@
 /*globals describe, before, beforeEach, it, after*/
 require('should');
 require('./index.js');
-var supertest, app, Calendar, Event;
+var supertest, app, Event;
 
 supertest = require('supertest');
 app = require('../index.js');
-Calendar = require('../models/calendar');
 Event = require('../models/event');
 Activity = require('../models/activity');
 
@@ -13,27 +12,9 @@ describe('activity controller', function () {
 	
 	'use strict';
 
-	before(Calendar.remove.bind(Calendar));
 	before(Event.remove.bind(Event));
 	before(Activity.remove.bind(Activity));
 
-	before(function (done) {
-		var request = supertest(app);
-		request = request.post('/calendars');
-		request.set('csrf-token', 'adminToken')
-		request.send({'year' : 2014});
-		request.expect(201);
-		request.end(done);
-	});
-
-	before(function (done) {
-		var request = supertest(app);
-		request = request.post('/calendars');
-		request.set('csrf-token', 'adminToken')
-		request.send({'year' : 2015});
-		request.expect(201);
-		request.end(done);
-	});
 
 	before(function (done) {
 		var request = supertest(app);
@@ -44,6 +25,7 @@ describe('activity controller', function () {
 		request.end(done);
 	});
 
+	
 	before(function (done) {
 		var request = supertest(app);
 		request = request.post('/events');
@@ -60,7 +42,7 @@ describe('activity controller', function () {
 
 		it('should raise error without token', function (done) {
 	      var request = supertest(app);
-	      request = request.post('/calendars/2014/events/event1/activities');
+	      request = request.post('/events/event1/activities');
 	      request.send({'code'     : '1'});
 	      request.send({'name'     : 'Activity 1'});
 	      request.send({'reset'    : 'false'});
@@ -71,7 +53,7 @@ describe('activity controller', function () {
 		
 		it('should raise error event not found', function (done) {
 	      var request = supertest(app);
-	      request = request.post('/calendars/2014/events/event3/activities');
+	      request = request.post('/events/event3/activities');
 	      request.set('csrf-token', 'adminToken')
 	      request.send({'code'     : '1'});
 	      request.send({'name'     : 'Activity 1'});
@@ -83,7 +65,7 @@ describe('activity controller', function () {
 		
 		it('should raise error without cod', function (done) {
 	      var request = supertest(app);
-	      request = request.post('/calendars/2014/events/event1/activities');
+	      request = request.post('/events/event1/activities');
 	      request.set('csrf-token', 'adminToken')
 	      request.send({'name'     : 'Activity 1'});
 	      request.send({'reset'    : 'false'});
@@ -94,7 +76,7 @@ describe('activity controller', function () {
 		
 		it('should raise error without name', function (done) {
 	      var request = supertest(app);
-	      request = request.post('/calendars/2014/events/event1/activities');
+	      request = request.post('/events/event1/activities');
 	      request.set('csrf-token', 'adminToken')
 	      request.send({'code'     : '1'});
 	      request.send({'reset'    : 'false'});
@@ -105,7 +87,7 @@ describe('activity controller', function () {
 		
 		it('should raise error without reset', function (done) {
 	      var request = supertest(app);
-	      request = request.post('/calendars/2014/events/event1/activities');
+	      request = request.post('/events/event1/activities');
 	      request.set('csrf-token', 'adminToken')
 	      request.send({'code'     : '1'});
 	      request.send({'required' : 'false'});
@@ -115,7 +97,7 @@ describe('activity controller', function () {
 		
 		it('should raise error without required', function (done) {
 	      var request = supertest(app);
-	      request = request.post('/calendars/2014/events/event1/activities');
+	      request = request.post('/events/event1/activities');
 	      request.set('csrf-token', 'adminToken')
 	      request.send({'code'     : '1'});
 	      request.send({'name'     : 'Activity 1'});
@@ -126,7 +108,7 @@ describe('activity controller', function () {
 		
 		it('should create activity', function (done) {
 	      var request = supertest(app);
-	      request = request.post('/calendars/2014/events/event1/activities');
+	      request = request.post('/events/event1/activities');
 	      request.set('csrf-token', 'adminToken')
 	      request.send({'code'     : '1'});
 	      request.send({'name'     : 'Activity 1'});
@@ -145,7 +127,7 @@ describe('activity controller', function () {
 		
 		before(function (done) {
 			var request = supertest(app);
-		    request = request.post('/calendars/2014/events/event1/activities');
+		    request = request.post('/events/event1/activities');
 		    request.set('csrf-token', 'adminToken')
 		    request.send({'code'     : '1'});
 		    request.send({'name'     : 'Activity 1'});
@@ -157,7 +139,7 @@ describe('activity controller', function () {
 		
 		before(function (done) {
 			var request = supertest(app);
-		    request = request.post('/calendars/2014/events/event1/activities');
+		    request = request.post('/events/event1/activities');
 		    request.set('csrf-token', 'adminToken')
 		    request.send({'code'     : '2'});
 		    request.send({'name'     : 'Activity 2'});
@@ -169,11 +151,141 @@ describe('activity controller', function () {
 		
 		it('should list event activities', function (done) {
 			var request = supertest(app);
-		    request = request.get('/calendars/2014/events/event1/activities');
+		    request = request.get('/events/event1/activities');
 		    request.expect(200);
 		    request.end(done);
 		});
 				
+		
+	});
+	
+	
+	describe('update', function () {
+		
+		before(Activity.remove.bind(Activity));
+		
+		before(function (done) {
+			var request = supertest(app);
+		    request = request.post('/events/event1/activities');
+		    request.set('csrf-token', 'adminToken')
+		    request.send({'code'     : '1'});
+		    request.send({'name'     : 'Activity 1'});
+		    request.send({'reset'    : 'false'});
+		    request.send({'required' : 'false'});
+		    request.expect(201);
+		    request.end(done);
+		});
+		
+		
+		it('should raise error without token', function (done) {
+	      var request = supertest(app);
+	      request = request.put('/events/event1/activities/activity-1');
+	      request.expect(403);
+	      request.end(done);
+	    });
+		
+		
+		it('should raise error without permission', function (done) {
+	      var request = supertest(app);
+	      request = request.put('/events/event1/activities/activity-1');
+	      request.set('csrf-token', 'userToken')
+	      request.expect(403);
+	      request.end(done);
+	    });
+		
+		
+		it('should raise error event not found', function (done) {
+	      var request = supertest(app);
+	      request = request.put('/events/event3/activities/activity-1');
+	      request.set('csrf-token', 'adminToken')
+	      request.expect(404);
+	      request.end(done);
+		});
+		
+		
+		it('should raise error activity not found', function (done) {
+	      var request = supertest(app);
+	      request = request.put('/events/event1/activities/activity-3');
+	      request.set('csrf-token', 'adminToken')
+	      request.expect(404);
+	      request.end(done);
+		});
+		
+		
+		it('should update', function (done) {
+	      var request = supertest(app);
+	      request = request.put('/events/event1/activities/activity-1');
+	      request.set('csrf-token', 'adminToken')
+	      request.send({'code'     : '2'});
+	      request.send({'name'     : 'Activity 2'});
+	      request.send({'reset'    : 'false'});
+	      request.send({'required' : 'true'});
+	      request.expect(200);
+	      request.end(done);
+		});
+		
+	});
+	
+	
+	describe('delete', function () {
+		
+		before(Activity.remove.bind(Activity));
+		
+		before(function (done) {
+			var request = supertest(app);
+		    request = request.post('/events/event1/activities');
+		    request.set('csrf-token', 'adminToken')
+		    request.send({'code'     : '1'});
+		    request.send({'name'     : 'Activity 1'});
+		    request.send({'reset'    : 'false'});
+		    request.send({'required' : 'false'});
+		    request.expect(201);
+		    request.end(done);
+		});
+		
+		
+		it('should raise error without token', function (done) {
+	      var request = supertest(app);
+	      request = request.del('/events/event1/activities/activity-1');
+	      request.expect(403);
+	      request.end(done);
+	    });
+		
+		
+		it('should raise error without permission', function (done) {
+	      var request = supertest(app);
+	      request = request.del('/events/event1/activities/activity-1');
+	      request.set('csrf-token', 'userToken')
+	      request.expect(403);
+	      request.end(done);
+	    });
+		
+		
+		it('should raise error event not found', function (done) {
+	      var request = supertest(app);
+	      request = request.del('/events/event3/activities/activity-1');
+	      request.set('csrf-token', 'adminToken')
+	      request.expect(404);
+	      request.end(done);
+		});
+		
+		
+		it('should raise error activity not found', function (done) {
+	      var request = supertest(app);
+	      request = request.del('/events/event1/activities/activity-3');
+	      request.set('csrf-token', 'adminToken')
+	      request.expect(404);
+	      request.end(done);
+		});
+		
+		
+		it('should delete', function (done) {
+	      var request = supertest(app);
+	      request = request.del('/events/event1/activities/activity-1');
+	      request.set('csrf-token', 'adminToken')
+	      request.expect(204);
+	      request.end(done);
+		});
 		
 	});
 	

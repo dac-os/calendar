@@ -9,10 +9,45 @@ Calendar = require('../models/calendar');
 Event = require('../models/event');
 Activity = require('../models/activity');
 
+
+/**
+ * @api {post} /calendars/:calendar/events Creates a new calendar event.
+ * @apiName createEvent
+ * @apiVersion 1.0.0
+ * @apiGroup event
+ * @apiPermission changeEvent
+ * @apiDescription
+ * When creating a new calendar event the user must send the event name, date and description. The event name is used
+ * for identifying and must be unique in the calendar. If a existing name is sent to this method, a 409 error will be
+ * raised. And if no name or date is sent, a 400 error will be raised.
+ *
+ * @apiParam {Date} date Event date of occurrence.
+ * @apiParam {String} name Event name.
+ * @apiParam {String} [description] Event description.
+ *
+ * @apiErrorExample
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "name": "required"
+ *   "date": "required"
+ * }
+ *
+ * @apiErrorExample
+ * HTTP/1.1 403 Forbidden
+ * {}
+ *
+ * @apiErrorExample
+ * HTTP/1.1 409 Conflict
+ * {}
+ *
+ * @apiSuccessExample
+ * HTTP/1.1 201 Created
+ * {}
+ */
 router
-.route('/calendars/:calendar/events/:event/activities')
+.route('/events/:event/activities')
 .post(auth.can('changeActivity'))
-.post(function createActivity(request, response, next) {
+.post(function createEvent(request, response, next) {
   'use strict';
 
   var activity;
@@ -24,30 +59,6 @@ router
     'reset'       : request.param('reset'),
     'required'    : request.param('required')
   });
-  return activity.save(function createdActivity(error) {
-    if (error) {
-      error = new VError(error, 'error creating activity');
-      return next(error);
-    }
-    return response.status(201).end();
-  });
-});
-
-router
-.route('/events/:event/activities/:activity')
-.post(auth.can('changeActivity'))
-.post(function createEvent(request, response, next) {
-  'use strict';
-
-  var activity;
-  activity = new Event({
-    'slug'        : slug(request.param('name', '').toLowerCase()),
-    'calendar'    : request.calendar ? request.calendar._id : null,
-    'date'        : request.param('date'),
-    'name'        : request.param('name'),
-    'description' : request.param('description')
-  });
-  
   return activity.save(function createdActivity(error) {
     if (error) {
       error = new VError(error, 'error creating activity');
@@ -105,29 +116,6 @@ router
       error = new VError(error, 'error finding activities');
       return next(error);
     }
-    return response.status(200).send(activities);
-  });
-});
-
-
-router
-.route('/calendars/:calendar/events/:event/activities')
-.get(function listActivities(request, response, next) {
-  'use strict';
-
-  var pageSize, page, query;
-  pageSize = nconf.get('PAGE_SIZE');
-  page = request.param('page', 0) * pageSize;
-  query = Activity.find();
-  query.where('event').equals(request.event._id);
-  query.skip(page);
-  query.limit(pageSize);
-  return query.exec(function listedActivities(error, activities) {
-    if (error) {
-      error = new VError(error, 'error finding activities');
-      return next(error);
-    }
-    console.log(activities);
     return response.status(200).send(activities);
   });
 });
@@ -225,14 +213,14 @@ router
   activity = request.activity;
   activity.slug = slug(request.param('slug', '').toLowerCase());
   activity.code = request.param('code');
-  activity.event = request.param('event');
+  activity.event = request.event._id;
   activity.name = request.param('name');
   activity.reset = request.param('reset');
   activity.required = request.param('required');
-  activity.previous = request.param('previous');
-  activity.next = request.param('next');
+  //activity.previous = request.param('previous');
+  //activity.next = request.param('next');
   
-  return event.save(function updatedActivity(error) {
+  return activity.save(function updatedActivity(error) {
     if (error) {
       error = new VError(error, 'error updating activity: "$s"', request.params.activity);
       return next(error);
@@ -283,29 +271,6 @@ router
 });
 
 
-
-
-
-router.param('calendar', function findCalendar(request, response, next, id) {
-  'use strict';
-
-  var query;
-  query = Calendar.findOne();
-  query.where('year').equals(id);
-  query.exec(function foundCalendar(error, calendar) {
-    if (error) {
-      error = new VError(error, 'error finding calendar: "$s"', calendar);
-      return next(error);
-    }
-    if (!calendar) {
-      return response.status(404).end();
-    }
-    request.calendar = calendar;
-    return next();
-  });
-});
-
-
 router.param('event', function findEvent(request, response, next, id) {
   'use strict';
 
@@ -323,27 +288,6 @@ router.param('event', function findEvent(request, response, next, id) {
     }
     request.event = event;
     return next(); 
-  });
- });
-
-
-
-router.param('calendar', function findCalendar(request, response, next, id) {
-  'use strict';
-
-  var query;
-  query = Calendar.findOne();
-  query.where('year').equals(id);
-  query.exec(function foundCalendar(error, calendar) {
-    if (error) {
-      error = new VError(error, 'error finding calendar: "$s"', calendar);
-      return next(error);
-    }
-    if (!calendar) {
-      return response.status(404).end();
-    }
-    request.calendar = calendar;
-    return next();
   });
 });
 
