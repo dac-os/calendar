@@ -119,6 +119,25 @@ describe('academic period controller', function () {
       request.end(done);
     });
 
+    it('should raise error with incompatible periodNumber and periodType', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.post('/academic-periods');
+      request.set('csrf-token', 'adminToken');
+      request.send({'periodNumber' : 5});
+      request.send({'periodType' : 'S'});
+      request.send({'year' : 2014});
+      request.send({'beginDate' : new Date()});
+      request.send({'endDate' : new Date()});
+      request.expect(400);
+
+      request.expect(function (response) {
+        response.body.should.have.property('periodType', 'incompatible period number and type');
+      });
+      request.end(done);
+    });
+
+
     it('should create', function (done) {
       var request;
       request = supertest(app);
@@ -388,6 +407,23 @@ describe('academic period controller', function () {
       request.expect(400);
       request.expect(function (response) {
         response.body.should.have.property('endDate').be.equal('required');
+      });
+      request.end(done);
+    });
+
+    it('should raise error with incompatible periodNumber and periodType', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.post('/academic-periods');
+      request.set('csrf-token', 'adminToken');
+      request.send({'periodNumber' : 1});
+      request.send({'periodType' : 'A'});
+      request.send({'year' : 2015});
+      request.send({'beginDate' : new Date()});
+      request.send({'endDate' : new Date()});
+      request.expect(400);
+      request.expect(function (response) {
+        response.body.should.have.property('periodType', 'incompatible period number and type');
       });
       request.end(done);
     });
