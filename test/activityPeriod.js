@@ -48,7 +48,6 @@ describe('activity period controller', function () {
 			function(createdObjs, callback) {
 				var event1 = new Event({
 					'slug'        : 'event1',
-					'calendar'    : createdObjs.calendar1._id,
 					'date'        : new Date(),
 					'name'        : 'Event1',
 					'description' : 'Event for test purposes'
@@ -63,7 +62,6 @@ describe('activity period controller', function () {
 			function(createdObjs, callback) {
 				var event2 = new Event({
 					'slug'        : 'event2',
-					'calendar'    : createdObjs.calendar2._id,
 					'date'        : new Date(),
 					'name'        : 'Event2',
 					'description' : 'Event for test purposes'
